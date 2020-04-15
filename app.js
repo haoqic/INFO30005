@@ -1,60 +1,40 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+// Import npm packages
+const express = require('express');
+const mongoose = require('mongoose');
+const morgan = require('morgan');
+const path = require('path');
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-var catalogRouter = require('./routes/catalog');  //Import routes for "catalog" area of site
+const app = express();
+const PORT = process.env.PORT || 8080; // Step 1
 
-var compression = require('compression');
-var helmet = require('helmet');
+const routes = require('./routes/api');
 
-var app = express();
+// Step 2
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/mern_youtube', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+});
 
+mongoose.connection.on('connected', () => {
+    console.log('Mongoose is connected!!!!');
+});
 
-// Set up mongoose connection
-var mongoose = require('mongoose');
-var dev_db_url = 'mongodb+srv://haoqic:haoqic@incubeta-wowel.mongodb.net/test?retryWrites=true&w=majority'
-var mongoDB = process.env.MONGODB_URI || dev_db_url;
-mongoose.connect(mongoDB, { useNewUrlParser: true });
-mongoose.Promise = global.Promise;
-var db = mongoose.connection;
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-
-
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'pug');
-
-app.use(logger('dev'));
+// Data parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(helmet());
-app.use(compression()); // Compress all routes
 
-app.use(express.static(path.join(__dirname, 'public')));
+// Step 3
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/catalog', catalogRouter);  // Add catalog routes to middleware chain.
+if (process.env.NODE_ENV === 'production') {
+    app.use(express.static('client/build'));
+}
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
-});
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+// HTTP request logger
+app.use(morgan('tiny'));
+app.use('/api', routes);
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
 
-module.exports = app;
+
+
+app.listen(PORT, console.log(`Server is starting at ${PORT}`));
