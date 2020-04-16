@@ -16,8 +16,7 @@ var app = express();
 
 // Set up mongoose connection
 var mongoose = require('mongoose');
-//var dev_db_url = 'mongodb+srv://haoqic:1234@incubeta-wowel.mongodb.net/INFO30005?retryWrites=true&w=majority'
-var mongoDB = process.env.MONGODB_URI;// || dev_db_url;
+var mongoDB = process.env.MONGODB_URI;
 mongoose.connect(mongoDB, { useNewUrlParser: true });
 mongoose.Promise = global.Promise;
 var db = mongoose.connection;
